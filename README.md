@@ -1,9 +1,4 @@
-## TODO
-
-- ASG StringでNote以外の情報
-
-
-# MG
+# Algorithmic Score Generator (ASG)
 
 ## インストール
 
@@ -536,3 +531,6 @@ JSONデータを解釈して現在のスタックに取り込む。
 - 引数1: max (integer, default: 64)
 - 引数2: pattern (string, default: '*')
 
+## TODO
+
+- ASG StringでNote以外の情報
