@@ -93,6 +93,37 @@ note 0 2 (60 + 7) # note 0 2 67 となる。
 *32 note ($i * 0.25) 0.25 (Math.sin(($i / 32) * Math.PI * 2) * 32 + 60)
 ```
 
+#### フィルタ
+
+```
+*16 note $i 1 (60 + $i) (80 + $i)
+update_all pitch 40 | min-time 4 | max-time 8
+```
+
+**フィルタ一覧**
+
+- pattern
+- min-time
+- max-time
+- min-duration
+- max-duration
+- min-pitch
+- max-pitch
+- min-velocity
+- max-velocity
+- track
+
+#### パターンの指定
+
+下記の記号を組み合わせた文字列で指定する。
+
+- * 有効
+- - 無効
+
+```
+invert | pattern *-*
+```
+
 ### スタックのクリア
 
 ```
@@ -226,18 +257,6 @@ note 0 2 $a
 
 ```
 include sub.ac
-```
-
-### パターンの指定
-
-下記の記号を組み合わせた文字列で指定する。
-
-- * 有効
-- - 無効
-
-```
-invert
-	pattern *-*--
 ```
 
 ## リファレンス
@@ -386,7 +405,6 @@ JSONデータを解釈して現在のスタックに取り込む。
 
 - 引数0: target (string, default: 'pitch')
 - 引数1: value (float, default: 1)
-- 引数2: pattern (string, default: '*')
 
 ### write
 
@@ -409,11 +427,8 @@ JSONデータを解釈して現在のスタックに取り込む。
 
 - 引数0: target (string, default: 'pitch')
 - 引数1: value (float, default: 1)
-- 引数2: pattern (string, default: '*')
 
 ### articulation
-
-- 引数0: pattern (string, default: '*')
 
 ### clip
 
@@ -433,26 +448,21 @@ JSONデータを解釈して現在のスタックに取り込む。
 - 引数0: target (string, default: 'pitch')
 - 引数1: min (float, default: 63)
 - 引数2: max (float, default: 68)
-- 引数3: pattern (string, default: '*')
-- 引数4: end_mode (string, default: 'inclusive')
+- 引数3: end_mode (string, default: 'inclusive')
 
 ### filter_out
 
 - 引数0: target (string, default: 'pitch')
 - 引数1: min (float, default: 63)
 - 引数2: max (float, default: 68)
-- 引数3: pattern (string, default: '*')
-- 引数4: end_mode (string, default: 'inclusive')
+- 引数3: end_mode (string, default: 'inclusive')
 
 ### invert
-
-- 引数0: pattern (string, default: '*')
 
 ### limit_pitch
 
 - 引数0: min (float, default: 60)
 - 引数1: max (float, default: 64)
-- 引数2: pattern (string, default: '*')
 
 ### line
 
@@ -460,7 +470,6 @@ JSONデータを解釈して現在のスタックに取り込む。
 - 引数1: from (float, default: -12)
 - 引数2: to (float, default: 12)
 - 引数3: mode (string, default: 'add')
-- 引数4: pattern (string, default: '*')
 
 ### monophony
 
@@ -475,8 +484,6 @@ JSONデータを解釈して現在のスタックに取り込む。
 
 ### remove_all
 
-- 引数0: pattern (string, default: '*')
-
 ### repeat
 
 - 引数0: n (integer, default: 3)
@@ -485,24 +492,19 @@ JSONデータを解釈して現在のスタックに取り込む。
 
 ### reverse
 
-- 引数0: pattern (string, default: '*')
-
 ### scale
 
-- 引数0: pitch_set (array, default: [0, 4, 5, 7, 11]
+- 引数0: pitch_set (array, default: [0 4 5 7 11]
 - 引数1: key (integer, 0)
-- 引数2: pattern (string, '*')
-- 引数3: harmonic_threshold (float, default: 0.5)
+- 引数2: harmonic_threshold (float, default: 0.5)
 
 ### shift
 
 - 引数0: amount (integer, default: 2)
-- 引数1: pattern (string, default: '*')
-- 引数2: mode (string, default: 'shift')
+- 引数1: mode (string, default: 'shift')
 
 ### shuffle
 
-- 引数0: pattern (string, default: '*')
 
 ### stretch
 
@@ -529,8 +531,8 @@ JSONデータを解釈して現在のスタックに取り込む。
 
 - 引数0: min (integer, default: 60)
 - 引数1: max (integer, default: 64)
-- 引数2: pattern (string, default: '*')
 
 ## TODO
 
 - ASG StringでNote以外の情報
+- undo
