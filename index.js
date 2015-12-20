@@ -294,12 +294,16 @@ VERSION = '0.9.0';
                 task.params[k] = tmp;
             }
         });
+        _.each(task.filters, function (v, k) {
+            task.params['@' + k] = v;
+        });
+        console.log(task.params);
     }
     
     function parse(data, callback) {
         // console.log('@parse');
         // console.log(data);
-        var currentTask, failed, newStacks, isCode;
+        var currentTask, failed, newStacks, isCode, args, filters;
         currentTask = null;
         failed = false;
         isCode = false;
@@ -362,13 +366,37 @@ VERSION = '0.9.0';
                     cmd: cmd,
                     params: {}
                 };
-                
+                filters = {};
                 if (currentTask.cmd === 'code') {
                     currentTask.params = {code: code};
                 } else if (methods[cmd] !== undefined && methods[cmd].args !== undefined) {
+                    args = [];
+                    (function () {
+                        var isFilter, filterArgIndex, filterLabel, filterValue;
+                        _.each(s, function (v) {
+                            if (v === '|') {
+                                isFilter = true;
+                                filterArgIndex = 0;
+                                return;
+                            }
+                            if (isFilter) {
+                                if (filterArgIndex === 0) {
+                                    filterLabel = v;
+                                } else if (filterArgIndex === 1) {
+                                    filterValue = v;
+                                }
+                                filterArgIndex += 1;
+                                if (filterArgIndex === 2) {
+                                    filters[filterLabel] = filterValue;
+                                }
+                            } else {
+                                args.push(v);
+                            }
+                        });
+                    }());
                     _.each(methods[cmd].args, function (a, i) {
                         var v;
-                        v = (s[i] !== undefined) ? s[i] : a.defaultValue;
+                        v = (args[i] !== undefined) ? args[i] : a.defaultValue;
                         if (v === undefined) {
                             console.error('ERROR: missing argument <' + a.label + '> for \"' + cmd + '\"');
                             failed = true;
@@ -377,7 +405,8 @@ VERSION = '0.9.0';
                         }
                     });
                 }
-                currentTask.args = _.cloneDeep(s);
+                currentTask.args = _.cloneDeep(args === undefined ? s : args);
+                currentTask.filters = filters;
                 if (nTimes > 0) {
                     currentTask.nTimes = nTimes;
                 }
@@ -469,20 +498,18 @@ VERSION = '0.9.0';
                     if (variables.hasOwnProperty('$i')) {
                         variables.$i = parseInt(variables.$i, 10);
                     }
-                    _.each(task.args, function (a, i) {
-                        _.each(variables, function (v, label) {
-                            if (typeof task.args[i] === 'string' && label[0] === '$') {
-                                task.args[i] = replaceAll(task.args[i], label, JSON.stringify(v));
-                            }
+                    function applyTarget(target) {
+                        _.each(target, function (a, i) {
+                            _.each(variables, function (v, label) {
+                                if (typeof target[i] === 'string' && label[0] === '$') {
+                                    target[i] = replaceAll(target[i], label, JSON.stringify(v));
+                                }
+                            });
                         });
-                    });
-                    _.each(task.params, function (p, k) {
-                        _.each(variables, function (v, label) {
-                            if (typeof task.params[k] === 'string' && label[0] === '$') {
-                                task.params[k] = replaceAll(task.params[k], label, JSON.stringify(v));
-                            }
-                        });
-                    });
+                    }
+                    applyTarget(task.args);
+                    applyTarget(task.params);
+                    applyTarget(task.filters);
                 }
                 
                 function executeTask(task) {
