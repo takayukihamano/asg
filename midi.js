@@ -19,7 +19,7 @@ async    = require('async');
 module.exports = {
     write: function (dir, name, data, callback) {
         
-        var file, events, nData, tracks, timeOffsets, maxTime;
+        var file, events, nData, tracks, timeOffsets, maxTime, asyncDone;
         
         nData = _.size(data);
         if (
@@ -132,43 +132,74 @@ module.exports = {
             t.setInstrument(0, 0, (maxTime - timeOffsets[i]) * 128 + 256);
         });
         
+        asyncDone = (function () {
+            var count = 0;
+            return function () {
+                count += 1;
+                if (count >= 2) {
+                    if (typeof callback === 'function') {
+                        callback();
+                    }
+                }
+            };
+        }());
+        
+        function createExecFunc(cmd) {
+            return function (callback) {
+                cmd = _.template(cmd)({
+                    name: name,
+                    dir: dir
+                });
+                console.log('$ ' + cmd);
+                cp.exec(cmd, {}, function (err, stdout) {
+                    // console.log(err);
+                    // console.log(stdout);
+                    callback();
+                });
+            };
+        }
+        
+        function asyncCallback(err) {
+            if (err) {
+                throw err;
+            }
+            // console.log('all done.');
+            asyncDone();
+        }
+        
         cp.exec('mkdir -p ' + dir, function (err) {
             fs.writeFileSync([dir, 'output.mid'].join('/'), file.toBytes(), 'binary');
-            async.series(_.map(
-                [
-                    'midi2ly -o <%= dir %>/output-midi.ly <%= dir %>/output.mid',
-                    'echo \\\\header { tagline = \\\"\\\" } >> <%= dir %>/output-midi.ly',
-                    'lilypond -o <%= dir %>/<%= name %> <%= dir %>/output-midi.ly',
-                    'open <%= dir %>/<%= name %>.pdf',
-                    'fluidsynth -g 1.0 -l -i -a file -z 2048 -F <%= dir %>/output.raw titanic.sf2 <%= dir %>/output.mid',
-                    'sox -b 16 -c 2 -e signed-integer -r 44100 <%= dir %>/output.raw <%= dir %>/<%= name %>.mp3 pad 0 1 gain -n -3',
-                    'open <%= dir %>/<%= name %>.mp3',
-                    'rm <%= dir %>/output-midi.ly <%= dir %>/<%= name %>.midi <%= dir %>/output.raw',
-                    'mv <%= dir %>/output.mid <%= dir %>/<%= name %>.mid'
-                ],
-                function (cmd) {
-                    return function (callback) {
-                        cmd = _.template(cmd)({
-                            name: name,
-                            dir: dir
-                        });
-                        console.log('$ ' + cmd);
-                        cp.exec(cmd, {}, function (err, stdout) {
-                            // console.log(err);
-                            // console.log(stdout);
-                            callback();
-                        });
-                    };
+            cp.exec(
+                'midi2ly -o <%= dir %>/output-midi.ly <%= dir %>/output.mid; cp <%= dir %>/output.mid <%= dir %>/<%= name %>.mid',
+                function (err) {
+                    async.series(
+                        _.map(
+                            [
+                                'midi2ly -o <%= dir %>/output-midi.ly <%= dir %>/output.mid',
+                                'echo \\\\header { tagline = \\\"\\\" } >> <%= dir %>/output-midi.ly',
+                                'lilypond -o <%= dir %>/<%= name %> <%= dir %>/output-midi.ly',
+                                'open <%= dir %>/<%= name %>.pdf',
+                                'rm <%= dir %>/output-midi.ly <%= dir %>/<%= name %>.midi'
+                        
+                            ],
+                            createExecFunc
+                        ),
+                        asyncCallback
+                    );
+                    async.series(
+                        _.map(
+                            [
+                                'fluidsynth -g 1.0 -l -i -a file -z 2048 -F <%= dir %>/output.raw titanic.sf2 <%= dir %>/output.mid',
+                                'sox -b 16 -c 2 -e signed-integer -r 44100 <%= dir %>/output.raw <%= dir %>/<%= name %>.mp3 pad 0 1 gain -n -3',
+                                'open <%= dir %>/<%= name %>.mp3',
+                                'rm <%= dir %>/output.raw'
+                            ],
+                            createExecFunc
+                        ),
+                        asyncCallback
+                    );
                 }
-            ), function (err) {
-                if (err) {
-                    throw err;
-                }
-                // console.log('all done.');
-                if (typeof callback === 'function') {
-                    callback();
-                }
-            });
+            );
         });
         
         return true;
