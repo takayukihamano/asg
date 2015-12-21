@@ -9,6 +9,7 @@ $ cd asg
 $ ./install.sh
 
 # ローカルレンダリングする場合は以下もインストール
+$ cd asg
 $ curl -O http://takayukihamano.net/tmp/titanic.sf2
 $ brew install brew-cask
 $ brew cask install mactex
@@ -16,6 +17,13 @@ $ brew install lilypond sox fluidsynth
 ```
 
 ## 実行
+
+### バージョンの確認
+
+```
+$ asg -v
+```
+
 
 ### ファイルの実行
 
@@ -73,6 +81,16 @@ scale [0 4 6 7 11] 3 # 配列の引数
 note 0 2 (60 + 7) # note 0 2 67 となる。
 ```
 
+#### 変数
+
+変数名は必ず頭に$をつける。
+
+```
+set $abc [3 1 4]
+get $abc
+note ($abc[0]) ($abc[1]) (60 + $abc[2]) 
+```
+
 #### 繰り返し修飾子
 
 ```
@@ -91,6 +109,13 @@ note 0 2 (60 + 7) # note 0 2 67 となる。
 
 ```
 *32 note ($i * 0.25) 0.25 (Math.sin(($i / 32) * Math.PI * 2) * 32 + 60)
+```
+
+#### 配列イテレータ
+
+```
+set $abc [1 3 5]
+*$abc note $k 1 (60 + $v)
 ```
 
 #### フィルタ
@@ -535,4 +560,5 @@ JSONデータを解釈して現在のスタックに取り込む。
 ## TODO
 
 - ASG StringでNote以外の情報
-- undo
+- 変数
+- 変数に対するイテレータ

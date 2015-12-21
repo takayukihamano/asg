@@ -307,7 +307,7 @@ VERSION = '0.9.0';
         failed = false;
         isCode = false;
         _.each(data, function (s) {
-            var indented, cmd, nTimes;
+            var indented, cmd, nTimes, eachTarget;
             if (s.indexOf('#') >= 0) {
                 s = s.substring(0, s.indexOf('#'));
             }
@@ -343,6 +343,9 @@ VERSION = '0.9.0';
             }
             if (cmd[0] === '*') {
                 nTimes = parseInt(cmd.substring(1), 10);
+                if (_.isNaN(nTimes)) {
+                    eachTarget = cmd.substring(1);
+                }
                 cmd = s.shift();
             }
             if (currentStack === null || cmd === '---') {
@@ -409,6 +412,7 @@ VERSION = '0.9.0';
                 if (nTimes > 0) {
                     currentTask.nTimes = nTimes;
                 }
+                currentTask.eachTarget = eachTarget;
                 currentStack.push(currentTask);
             }
             
@@ -425,15 +429,12 @@ VERSION = '0.9.0';
                     _.times(s.nTimes, function (index) {
                         var newS;
                         newS = _.cloneDeep(s);
-                        _.each(newS.params, function (v, k) {
-                            if (typeof v === 'string') {
-                                newS.params[k] = replaceAll(v, '$i', index.toString());
-                            }
-                        });
-                        _.each(newS.args, function (v, i) {
-                            if (typeof v === 'string') {
-                                newS.args[i] = replaceAll(v, '$i', index.toString());
-                            }
+                        _.each(['params', 'args'], function (t) {
+                            _.each(newS[t], function (v, k) {
+                                if (typeof v === 'string') {
+                                    newS[t][k] = replaceAll(v, '$i', index.toString());
+                                }
+                            });
                         });
                         newStack.push(newS);
                     });
@@ -518,7 +519,7 @@ VERSION = '0.9.0';
                     // console.log('- before');
                     // console.log(task.params);
                     
-                    if (task.cmd !== 'code') {
+                    if (task.cmd !== 'code' && task.cmd !== 'set') {
                         applyVariables(task, jsVariables);
                     }
                     parseArgsAndParams(task);
@@ -557,7 +558,18 @@ VERSION = '0.9.0';
                             runTask(t);
                         });
                     } else if (methods[task.cmd] !== undefined) {
-                        executeTask(task);
+                        if (task.eachTarget !== undefined) {
+                            if (jsVariables[task.eachTarget] !== undefined) {
+                                _.each(jsVariables[task.eachTarget], function (v, k) {
+                                    jsVariables.$i = k;
+                                    jsVariables.$k = k;
+                                    jsVariables.$v = v;
+                                    executeTask(task);
+                                });
+                            }
+                        } else {
+                            executeTask(task);
+                        }
                     } else {
                         console.error('ERROR: command \"' + task.cmd + '\" not found.');
                     }
@@ -771,6 +783,7 @@ VERSION = '0.9.0';
         break;
     case 'repl':
         console.log('Algorithmic Score Generator (version ' + VERSION + ')');
+        console.log('rendering server: ' + RENDER_MODE);
         rlInterface = readline.createInterface({
             input: process.stdin,
             output: process.stdout,
