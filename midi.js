@@ -150,7 +150,7 @@ module.exports = {
                     name: name,
                     dir: dir
                 });
-                console.log('$ ' + cmd);
+                // console.log('$ ' + cmd);
                 cp.exec(cmd, {}, function (err, stdout) {
                     // console.log(err);
                     // console.log(stdout);
@@ -170,7 +170,7 @@ module.exports = {
         cp.exec('mkdir -p ' + dir, function (err) {
             fs.writeFileSync([dir, 'output.mid'].join('/'), file.toBytes(), 'binary');
             cp.exec(
-                'midi2ly -o <%= dir %>/output-midi.ly <%= dir %>/output.mid; cp <%= dir %>/output.mid <%= dir %>/<%= name %>.mid',
+                'cp <%= dir %>/output.mid <%= dir %>/<%= name %>.mid',
                 function (err) {
                     async.series(
                         _.map(

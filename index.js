@@ -29,8 +29,8 @@ readline = require('readline');
 beautify = require('node-beautify');
 
 PROCESS_MODE = 'file';
-RENDER_MODE = 'local';
-REMOTE_URL = 'http://takayukihamano.net:3000';
+RENDER_MODE = 'remote';
+REMOTE_URL = 'http://www3378uo.sakura.ne.jp:3000';
 VERSION = '0.9.0';
 
 (function () {
@@ -297,7 +297,6 @@ VERSION = '0.9.0';
         _.each(task.filters, function (v, k) {
             task.params['@' + k] = v;
         });
-        console.log(task.params);
     }
     
     function parse(data, callback) {
@@ -593,24 +592,28 @@ VERSION = '0.9.0';
                     cp.exec(cmd({fileName: fileName}));
                 }
             }
-            body = JSON.parse(body);
-            if (body.id !== undefined) {
-                _.each([
-                    'mid',
-                    'mp3',
-                    'pdf'
-                ], function (ext) {
-                    var path, stream;
-                    path = dir + '/' + [name, ext].join('.');
-                    stream = fs.createWriteStream(path);
-                    request.get({
-                        url: [REMOTE_URL, 'file', ext, body.id].join('/')
-                    }, function () {
-                    }).pipe(stream);
-                    stream.on('close', function () {
-                        done();
+            try {
+                body = JSON.parse(body);
+                if (body.id !== undefined) {
+                    _.each([
+                        'mid',
+                        'mp3',
+                        'pdf'
+                    ], function (ext) {
+                        var path, stream;
+                        path = dir + '/' + [name, ext].join('.');
+                        stream = fs.createWriteStream(path);
+                        request.get({
+                            url: [REMOTE_URL, 'file', ext, body.id].join('/')
+                        }, function () {
+                        }).pipe(stream);
+                        stream.on('close', function () {
+                            done();
+                        });
                     });
-                });
+                }
+            } catch (err) {
+                console.log('aborted: an error occurred.');
             }
             callback();
         });
