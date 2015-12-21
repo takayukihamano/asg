@@ -302,6 +302,17 @@ include sub.ac
 
 指定したスタックの内容を現在のスタックに取り込む。
 
+### set
+
+- 引数0: name (string)
+- 引数1: value (string)
+
+### get
+
+- 引数0: name (string)
+
+### show_variables
+
 ### show_stacks
 
 スタックのリストを表示する。

@@ -319,7 +319,6 @@ VERSION = '0.9.0';
                 isCode = false;
                 cmd = 'code';
                 s = [code];
-                console.log(s);
             } else if (s[0] === '(') {
                 cmd = 'push';
                 s = [];
@@ -400,7 +399,7 @@ VERSION = '0.9.0';
                         var v;
                         v = (args[i] !== undefined) ? args[i] : a.defaultValue;
                         if (v === undefined) {
-                            console.error('ERROR: missing argument <' + a.label + '> for \"' + cmd + '\"');
+                            console.error('WARNING: missing argument <' + a.label + '> for \"' + cmd + '\"');
                             failed = true;
                         } else {
                             currentTask.params[a.label] = v;
