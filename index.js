@@ -251,7 +251,7 @@ VERSION = '0.9.0';
                 return undefined;
             }
         }
-        if (v[0] === '$') {
+        if (v !== undefined && v[0] === '$') {
             return v;
         }
         switch (type) {
