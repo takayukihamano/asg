@@ -302,7 +302,7 @@ VERSION = '0.9.0';
     function parse(data, callback) {
         // console.log('@parse');
         // console.log(data);
-        var currentTask, failed, newStacks, isCode, args, filters;
+        var currentTask, failed, newStacks, isCode, filters;
         currentTask = null;
         failed = false;
         isCode = false;
@@ -363,6 +363,7 @@ VERSION = '0.9.0';
                     currentTask.params[cmd] = (_.size(s) === 1) ? s[0] : s;
                 }
             } else if (cmd !== '---') {
+                var args;
                 currentTask = {
                     cmd: cmd,
                     params: {}
@@ -406,15 +407,25 @@ VERSION = '0.9.0';
                         }
                     });
                 }
-                currentTask.args = _.cloneDeep(args === undefined ? s : args);
+                if (args === undefined) {
+                    currentTask.args = _.map(s, function (v) {
+                        try {
+                            v = eval(v);
+                        } catch (e) {}
+                        return v;
+                    });
+                } else {
+                    currentTask.args = _.cloneDeep(args);
+                }
+                // currentTask.args = _.cloneDeep(args === undefined ? s : args);
                 currentTask.filters = filters;
                 if (nTimes > 0) {
                     currentTask.nTimes = nTimes;
                 }
                 currentTask.eachTarget = eachTarget;
                 currentStack.push(currentTask);
+                currentTask.originalArgs = currentTask.args.concat([]);
             }
-            
         });
         
         // console.log(stacks);
@@ -532,7 +543,8 @@ VERSION = '0.9.0';
                         result,
                         task.params,
                         task.args,
-                        jsVariables
+                        jsVariables,
+                        task.originalArgs
                     );
                     if (newData !== null && newData !== undefined) {
                         data = newData;

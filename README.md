@@ -307,6 +307,12 @@ include sub.ac
 - 引数0: name (string)
 - 引数1: value (string)
 
+```
+set $a 30
+set $b ($a + 20)
+set $c [10 $a $b]
+```
+
 ### get
 
 - 引数0: name (string)
