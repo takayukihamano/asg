@@ -485,6 +485,13 @@ JSONデータを解釈して現在のスタックに取り込む。
 - 引数0: sequences (array, default: [])
 - 引数1: interval (array, default: [])
 
+```
+*3 note $i
+=> a
+---
+concat [a a a] [2 3] 
+```
+
 ### filter
 
 - 引数0: target (string, default: 'pitch')
@@ -511,7 +518,12 @@ JSONデータを解釈して現在のスタックに取り込む。
 - 引数0: target (string, default: 'pitch')
 - 引数1: from (float, default: -12)
 - 引数2: to (float, default: 12)
-- 引数3: mode (string, default: 'add')
+- 引数3: mode ('add', 'multiply' or 'overwrite', default: 'add')
+
+```
+*16 note $i 1 60
+line pitch -12 12 add
+```
 
 ### monophony
 
